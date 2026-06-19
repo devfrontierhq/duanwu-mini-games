@@ -1,115 +1,192 @@
-:root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+@import "tailwindcss";
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+@theme {
+  --color-ocean:   #0d1b2a;
+  --color-panel:   #1a2a4a;
+  --color-rim:     #2a4a7a;
+  --color-gold:    #e8b84b;
+  --color-muted:   #6a8aaa;
+  --color-dragon:  #c0392b;
+  --color-perfect: #2ecc71;
+  --color-good:    #f39c12;
+  --color-miss:    #e74c3c;
+  --color-cream:   #f0e6c8;
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --animate-wave:          wave 1.8s linear infinite;
+  --animate-glow-pulse:    glow-pulse 0.9s ease-in-out infinite;
+  --animate-shake:         shake 0.38s ease;
+  --animate-pop:           pop 0.28s ease;
+  --animate-pulse-dim:     pulse-dim 0.5s ease infinite;
+  --animate-frozen-shake:  frozen-shake 0.15s ease-in-out infinite;
+  --animate-spin-icon:     spin-icon 0.6s linear infinite;
+}
 
-  @media (max-width: 1024px) {
-    font-size: 16px;
+@keyframes wave {
+  from { background-position: 0 0; }
+  to   { background-position: -32px 0; }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(232, 184, 75, 0.3); }
+  50%       { box-shadow: 0 0 20px rgba(232, 184, 75, 0.75); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%      { transform: translateX(-6px); }
+  40%      { transform: translateX(6px); }
+  60%      { transform: translateX(-5px); }
+  80%      { transform: translateX(5px); }
+}
+
+@keyframes pop {
+  0%   { transform: scale(0.6); opacity: 0; }
+  60%  { transform: scale(1.15); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes pulse-dim {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.55; }
+}
+
+@keyframes frozen-shake {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  33%      { transform: translateY(-2px) rotate(-3deg); }
+  66%      { transform: translateY(1px) rotate(2deg); }
+}
+
+@keyframes spin-icon {
+  from { transform: translateX(-50%) rotate(0deg); }
+  to   { transform: translateX(-50%) rotate(360deg); }
+}
+
+@layer base {
+  html, body { height: 100%; }
+  body {
+    font-family: system-ui, -apple-system, 'Segoe UI', 'PingFang TC', 'Noto Sans TC', sans-serif;
+    background: var(--color-ocean);
+    color: var(--color-cream);
+    -webkit-font-smoothing: antialiased;
   }
+  #root { width: 100%; min-height: 100vh; }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+@layer components {
+  /* ── Key card base + states ── */
+  .key-card {
+    @apply w-15.5 h-15.5 bg-[#142038] border-2 border-rim rounded-[10px]
+           flex items-center justify-center text-[1.9rem]
+           transition-[background,border-color,transform] duration-150 select-none;
+  }
+  @media (max-width: 767px) {
+    .key-card { width: 52px; height: 52px; font-size: 1.55rem; }
+  }
+  .key-card.pending { opacity: 0.35; }
+  .key-card.current {
+    border-color: var(--color-gold);
+    background: #1e3050;
+    box-shadow: 0 0 14px rgba(232, 184, 75, 0.45);
+    animation: glow-pulse 0.9s ease-in-out infinite;
+  }
+  .key-card.done {
+    border-color: var(--color-perfect);
+    background: #0e3a1a;
+    transform: scale(1.06);
+  }
+  .key-card.wrong {
+    border-color: var(--color-miss);
+    background: #3a0e0e;
+    animation: shake 0.38s ease;
   }
 
-  #social .button-icon {
-    filter: invert(1) brightness(2);
+  /* ── Timing zones ── */
+  .tz { position: absolute; top: 0; height: 100%; }
+  .tz-miss    { background: rgba(231, 76,  60, 0.22); }
+  .tz-good    { background: rgba(243, 156, 18, 0.28); }
+  .tz-perfect { background: rgba(46,  204, 113, 0.32); }
+
+  /* ── Timing indicator glow ── */
+  .timing-indicator {
+    position: absolute;
+    top: 3px;
+    width: 5px;
+    height: calc(100% - 6px);
+    background: #fff;
+    border-radius: 3px;
+    box-shadow: 0 0 8px #fff, 0 0 18px rgba(255, 255, 255, 0.6);
+    transform: translateX(-50%);
+    will-change: left;
+    pointer-events: none;
   }
-}
 
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-}
-
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
-}
-
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
+  /* ── Frosted lock overlay ── */
+  .timing-bar-lock {
+    position: absolute;
+    inset: 0;
+    background: rgba(10, 22, 40, 0.55);
+    z-index: 2;
+    pointer-events: none;
   }
-}
 
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-
-  @media (max-width: 1024px) {
-    font-size: 20px;
+  /* ── River wave ── */
+  .river-wave {
+    height: 8px;
+    background: repeating-linear-gradient(
+      90deg,
+      transparent 0, transparent 16px,
+      rgba(30, 100, 180, 0.35) 16px, rgba(30, 100, 180, 0.35) 32px
+    );
+    animation: wave 1.8s linear infinite;
+    border-radius: 0 0 4px 4px;
   }
+
+  /* ── Frozen boat ── */
+  .river-boat-frozen {
+    filter: drop-shadow(0 0 6px rgba(100, 180, 255, 0.9))
+            drop-shadow(0 3px 6px rgba(0, 0, 0, 0.6));
+    animation: frozen-shake 0.15s ease-in-out infinite;
+  }
+  .boat-frozen-icon {
+    position: absolute;
+    top: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.9rem;
+    animation: spin-icon 0.6s linear infinite;
+  }
+
+  /* ── Feedback pop animations ── */
+  .feedback-perfect { color: var(--color-perfect); animation: pop 0.28s ease; }
+  .feedback-good    { color: var(--color-good);    animation: pop 0.28s ease; }
+  .feedback-miss    { color: var(--color-miss);    animation: pop 0.28s ease; }
+
+  /* ── Ad event purple glow pseudo-element ── */
+  .ad-event { position: relative; }
+  .ad-event::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at top right, rgba(155, 89, 182, 0.18), transparent 60%);
+    pointer-events: none;
+  }
+
+  /* ── Ad subtitle gradient text ── */
+  .ad-subtitle {
+    font-weight: 700;
+    background: linear-gradient(90deg, #e74c3c, #9b59b6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* ── Leaderboard cells ── */
+  .lb-rank  { width: 28px; text-align: center; padding: 7px 6px; border-bottom: 1px solid rgba(42, 74, 122, 0.4); }
+  .lb-name  { color: #c0d8f0; padding: 7px 6px; border-bottom: 1px solid rgba(42, 74, 122, 0.4); }
+  .lb-score { text-align: right; font-weight: 700; color: var(--color-gold); padding: 7px 6px; border-bottom: 1px solid rgba(42, 74, 122, 0.4); }
 }
 
-p {
-  margin: 0;
-}
-
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
-
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
-}
+/* Outside @layer so medal colors win over everything */
+.lb-row-1 td { color: #ffd700; }
+.lb-row-2 td { color: #c0c0c0; }
+.lb-row-3 td { color: #cd7f32; }
