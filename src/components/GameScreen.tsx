@@ -2,6 +2,7 @@ import type { useGame } from "../hooks/useGame";
 import HUD from "./HUD";
 import MobileControls from "./MobileControls";
 import RiverTrack from "./RiverTrack";
+import { STAGES } from "../config";
 import { gtm } from "../utils/gtm";
 
 export default function GameScreen({
@@ -17,6 +18,8 @@ export default function GameScreen({
     boatProgress,
     driftPaused,
     paused,
+    phase,
+    stage,
     sequence,
     inputIndex,
     sequenceDone,
@@ -53,10 +56,39 @@ export default function GameScreen({
             >
               ↺ 重新開始
             </button>
+            <button
+              className="px-6 py-2.5 bg-panel text-cream border-2 border-rim rounded-lg font-bold cursor-pointer transition-transform duration-150 hover:-translate-y-0.5"
+              onClick={game.settle}
+            >
+              📊 提前結算
+            </button>
           </div>
         </div>
       )}
-      <HUD score={score} combo={combo} timeLeft={timeLeft} />
+      {phase === "stageclear" && (
+        <div className="absolute inset-0 bg-ocean/90 backdrop-blur-sm flex flex-col items-center justify-center gap-4 rounded-xl z-10">
+          <p className="text-5xl">🏅</p>
+          <p className="text-2xl font-bold text-gold">第 {stage} 關完成！</p>
+          <p className="text-[0.9rem] text-muted">
+            下一關：{STAGES[stage].name}
+          </p>
+          <div className="flex gap-3 mt-1">
+            <button
+              className="px-6 py-2.5 bg-panel text-cream border-2 border-rim rounded-lg font-bold cursor-pointer transition-transform duration-150 hover:-translate-y-0.5"
+              onClick={game.settle}
+            >
+              📊 結算
+            </button>
+            <button
+              className="px-6 py-2.5 bg-linear-to-br from-dragon to-[#8b0000] text-gold border-2 border-gold rounded-lg font-bold cursor-pointer transition-transform duration-150 hover:-translate-y-0.5"
+              onClick={game.nextStage}
+            >
+              ▶ 下一關
+            </button>
+          </div>
+        </div>
+      )}
+      <HUD score={score} combo={combo} timeLeft={timeLeft} stage={stage} />
       <RiverTrack progress={boatProgress} driftPaused={driftPaused} />
 
       {/* Sequence box */}

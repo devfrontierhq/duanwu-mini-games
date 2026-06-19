@@ -1,7 +1,7 @@
 import { useReducer, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import type { Arrow, HitQuality, GameState, GamePhase } from '../types';
 import {
-  GAME_DURATION, SCORE, BOAT_DELTA, DRIFT_AMOUNT, DRIFT_INTERVAL,
+  STAGES, TOTAL_STAGES, SCORE, BOAT_DELTA, DRIFT_AMOUNT, DRIFT_INTERVAL,
   BAR_DURATION_START, BAR_DURATION_MIN, BAR_DURATION_DEC,
 } from '../config';
 import { sfx } from '../utils/sounds';
@@ -17,11 +17,12 @@ function randomSeq(len: number): Arrow[] {
   return Array.from({ length: len }, () => ARROWS[Math.floor(Math.random() * 4)]);
 }
 
-function seqLen(round: number) {
-  if (round < 5) return 3;
-  if (round < 10) return 4;
-  if (round < 16) return 5;
-  return 6;
+function seqLen(round: number, stage: number) {
+  const offset = stage - 1;
+  if (round < 5) return Math.min(3 + offset, 8);
+  if (round < 10) return Math.min(4 + offset, 8);
+  if (round < 16) return Math.min(5 + offset, 8);
+  return Math.min(6 + offset, 8);
 }
 
 function comboMult(combo: number) {
@@ -30,8 +31,9 @@ function comboMult(combo: number) {
   return 1;
 }
 
-function barDuration(round: number) {
-  return Math.max(BAR_DURATION_MIN, BAR_DURATION_START - (round - 1) * BAR_DURATION_DEC);
+function barDuration(round: number, stage: number) {
+  const mult = STAGES[stage - 1].barSpeedMult;
+  return Math.max(BAR_DURATION_MIN, (BAR_DURATION_START - (round - 1) * BAR_DURATION_DEC) * mult);
 }
 
 // Hit zones: bar moves left→right (0→100%)
@@ -48,11 +50,11 @@ function evalHit(pct: number): HitQuality {
 const initial: GameState = {
   phase: 'start',
   score: 0, combo: 0, maxCombo: 0,
-  timeLeft: GAME_DURATION,
+  timeLeft: STAGES[0].timeLimit,
   boatProgress: 0,
   sequence: [], inputIndex: 0, sequenceDone: false, roundCount: 0,
   wrongKey: false, feedbackType: null, feedbackPoints: 0, isWin: false,
-  driftPaused: false, paused: false,
+  stage: 1, driftPaused: false, paused: false,
 };
 
 type Action =
@@ -61,6 +63,8 @@ type Action =
   | { type: 'CLEAR_SHAKE' }
   | { type: 'HIT'; quality: HitQuality }
   | { type: 'NEXT_ROUND' }
+  | { type: 'NEXT_STAGE' }
+  | { type: 'SETTLE' }
   | { type: 'TICK' }
   | { type: 'DRIFT' }
   | { type: 'RESUME_DRIFT' }
@@ -71,8 +75,16 @@ type Action =
 function reducer(state: GameState, action: Action): GameState {
   switch (action.type) {
     case 'START': {
+      const stage = 1;
       const round = 1;
-      return { ...initial, phase: 'playing', roundCount: round, sequence: randomSeq(seqLen(round)) };
+      return {
+        ...initial,
+        phase: 'playing',
+        stage,
+        roundCount: round,
+        timeLeft: STAGES[0].timeLimit,
+        sequence: randomSeq(seqLen(round, stage)),
+      };
     }
 
     case 'ARROW': {
@@ -110,17 +122,40 @@ function reducer(state: GameState, action: Action): GameState {
 
     case 'NEXT_ROUND': {
       if (state.phase !== 'feedback') return state;
-      if (state.boatProgress >= 100) return { ...state, phase: 'gameover', isWin: true };
+      if (state.boatProgress >= 100) {
+        if (state.stage >= TOTAL_STAGES) return { ...state, phase: 'gameover', isWin: true };
+        return { ...state, phase: 'stageclear' };
+      }
       const round = state.feedbackType !== 'miss' ? state.roundCount + 1 : state.roundCount;
       return {
         ...state,
         phase: 'playing',
         roundCount: round,
-        sequence: randomSeq(seqLen(round)),
+        sequence: randomSeq(seqLen(round, state.stage)),
         inputIndex: 0,
         sequenceDone: false,
         feedbackType: null,
         wrongKey: false,
+      };
+    }
+
+    case 'NEXT_STAGE': {
+      if (state.phase !== 'stageclear') return state;
+      const stage = state.stage + 1;
+      const round = 1;
+      return {
+        ...state,
+        phase: 'playing',
+        stage,
+        roundCount: round,
+        boatProgress: 0,
+        timeLeft: STAGES[stage - 1].timeLimit,
+        sequence: randomSeq(seqLen(round, stage)),
+        inputIndex: 0,
+        sequenceDone: false,
+        feedbackType: null,
+        wrongKey: false,
+        driftPaused: false,
       };
     }
 
@@ -133,7 +168,10 @@ function reducer(state: GameState, action: Action): GameState {
     case 'DRIFT': {
       if (!ACTIVE_PHASES.includes(state.phase) || state.driftPaused) return state;
       const boat = Math.min(100, state.boatProgress + DRIFT_AMOUNT);
-      if (boat >= 100) return { ...state, boatProgress: 100, phase: 'gameover', isWin: true };
+      if (boat >= 100) {
+        if (state.stage >= TOTAL_STAGES) return { ...state, boatProgress: 100, phase: 'gameover', isWin: true };
+        return { ...state, boatProgress: 100, phase: 'stageclear' };
+      }
       return { ...state, boatProgress: boat };
     }
 
@@ -146,6 +184,9 @@ function reducer(state: GameState, action: Action): GameState {
 
     case 'RESUME':
       return { ...state, paused: false };
+
+    case 'SETTLE':
+      return { ...state, phase: 'gameover', isWin: false };
 
     case 'RESET':
       return initial;
@@ -192,7 +233,7 @@ export function useGame() {
     sliderPosRef.current = 0;
     if (indicatorRef.current) indicatorRef.current.style.left = '0px';
 
-    const duration = barDuration(state.roundCount);
+    const duration = barDuration(state.roundCount, state.stage);
     const startTime = performance.now();
     let totalPaused = 0;
     let pauseStart: number | null = null;
@@ -227,7 +268,7 @@ export function useGame() {
 
     rafId = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafId);
-  }, [state.phase, state.roundCount]);
+  }, [state.phase, state.roundCount, state.stage]);
 
   // Clear wrong-key shake, reset sequence input
   useEffect(() => {
@@ -300,6 +341,8 @@ export function useGame() {
     barRef,
     start: () => dispatch({ type: 'START' }),
     reset: () => dispatch({ type: 'RESET' }),
+    settle: () => dispatch({ type: 'SETTLE' }),
+    nextStage: () => dispatch({ type: 'NEXT_STAGE' }),
     togglePause,
     handleArrow,
     handleSpace,

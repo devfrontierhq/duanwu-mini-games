@@ -1,11 +1,15 @@
+import { TOTAL_STAGES } from "../config";
+
 export default function HUD({
   score,
   combo,
   timeLeft,
+  stage,
 }: {
   score: number;
   combo: number;
   timeLeft: number;
+  stage: number;
 }) {
   const multiplierLabel = combo >= 10 ? "×2.0" : combo >= 5 ? "×1.5" : "×1.0";
   const timeValClass =
@@ -36,11 +40,18 @@ export default function HUD({
       </div>
       <div className="flex flex-col items-center gap-0.5">
         <span className="text-[0.65rem] text-muted uppercase tracking-widest">
+          關卡
+        </span>
+        <span className="text-[1.4rem] font-bold text-gold leading-[1.2]">
+          {stage}
+          <small className="text-[0.7rem] opacity-80"> / {TOTAL_STAGES}</small>
+        </span>
+      </div>
+      <div className="flex flex-col items-center gap-0.5">
+        <span className="text-[0.65rem] text-muted uppercase tracking-widest">
           時間
         </span>
-        <span
-          className={`text-[1.4rem] font-bold leading-[1.2] ${timeValClass}`}
-        >
+        <span className={`text-[1.4rem] font-bold leading-[1.2] ${timeValClass}`}>
           {timeLeft}s
         </span>
       </div>

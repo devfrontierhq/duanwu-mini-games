@@ -2,7 +2,7 @@ export type Arrow = '↑' | '↓' | '←' | '→';
 export type HitQuality = 'perfect' | 'good' | 'miss';
 
 // 'playing' covers both arrow-input and spacebar-timing within a single round
-export type GamePhase = 'start' | 'playing' | 'feedback' | 'gameover';
+export type GamePhase = 'start' | 'playing' | 'feedback' | 'stageclear' | 'gameover';
 
 export interface GameState {
   phase: GamePhase;
@@ -19,6 +19,7 @@ export interface GameState {
   feedbackType: HitQuality | null;
   feedbackPoints: number;
   isWin: boolean;
+  stage: number;
   driftPaused: boolean;
   paused: boolean;
 }

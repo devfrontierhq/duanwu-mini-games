@@ -9,7 +9,7 @@ import { gtm } from "./utils/gtm";
 export default function App() {
   const game = useGame();
   const { phase, score, maxCombo, isWin } = game.state;
-  const isPlaying = phase === "playing" || phase === "feedback";
+  const isPlaying = phase === "playing" || phase === "feedback" || phase === "stageclear";
 
   useEffect(() => {
     if (phase === "gameover") gtm.gameOver(score, maxCombo, isWin);

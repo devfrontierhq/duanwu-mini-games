@@ -10,11 +10,16 @@ export const REGISTER_URL =
 
 export const FB_PAGE_URL = "https://www.facebook.com/devfrontierhq/";
 
-export const GAME_DURATION = 90; // seconds
+export const STAGES = [
+  { name: '平靜河道', timeLimit: 90, barSpeedMult: 1.0, seqOffset: 0 },
+  { name: '風浪挑戰', timeLimit: 75, barSpeedMult: 0.75, seqOffset: 1 },
+  { name: '急流衝刺', timeLimit: 60, barSpeedMult: 0.55, seqOffset: 2 },
+] as const;
+export const TOTAL_STAGES = STAGES.length;
 
 // Timing bar: left→right, time-based (no bounce)
 export const BAR_DURATION_START = 2400; // ms on round 1
-export const BAR_DURATION_MIN = 1200; // ms floor
+export const BAR_DURATION_MIN = 1000; // ms floor
 export const BAR_DURATION_DEC = 50; // ms shaved per round
 
 export const SCORE: Record<string, number> = {
