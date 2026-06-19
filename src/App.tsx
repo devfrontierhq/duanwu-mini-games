@@ -1,13 +1,19 @@
+import { useEffect } from "react";
 import { useGame } from "./hooks/useGame";
 import StartScreen from "./components/StartScreen";
 import GameOverScreen from "./components/GameOverScreen";
 import GameScreen from "./components/GameScreen";
 import Sidebar from "./components/Sidebar";
+import { gtm } from "./utils/gtm";
 
 export default function App() {
   const game = useGame();
-  const { phase } = game.state;
+  const { phase, score, maxCombo, isWin } = game.state;
   const isPlaying = phase === "playing" || phase === "feedback";
+
+  useEffect(() => {
+    if (phase === "gameover") gtm.gameOver(score, maxCombo, isWin);
+  }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="flex flex-col min-h-screen ">

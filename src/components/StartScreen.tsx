@@ -1,3 +1,5 @@
+import { gtm } from "../utils/gtm";
+
 export default function StartScreen({ onStart }: { onStart: () => void }) {
   return (
     <div className="bg-panel border border-rim rounded-xl text-center px-8 py-9">
@@ -33,7 +35,7 @@ export default function StartScreen({ onStart }: { onStart: () => void }) {
 
       <button
         className="inline-block px-9 py-3.25 bg-linear-to-br from-dragon to-[#8b0000] text-gold border-2 border-gold rounded-lg text-[1.1rem] font-bold cursor-pointer tracking-[0.04em] transition-[transform,box-shadow] duration-150 hover:-translate-y-0.5 hover:shadow-[0_6px_18px_rgba(192,57,43,0.45)] active:translate-y-0"
-        onClick={onStart}
+        onClick={() => { gtm.gameStart(); onStart(); }}
       >
         🚣 開始比賽！
       </button>

@@ -1,6 +1,7 @@
 import { FB_PAGE_URL, REGISTER_URL } from "../config";
 import { getAdType } from "../utils/ads";
 import devfrontierLogo from "../assets/devfrontier-logo.svg";
+import { gtm } from "../utils/gtm";
 
 export default function AdCard({ large = false }: { large?: boolean }) {
   const adType = getAdType();
@@ -27,6 +28,7 @@ export default function AdCard({ large = false }: { large?: boolean }) {
           href={FB_PAGE_URL}
           target="_blank"
           rel="noopener"
+          onClick={() => gtm.adClick("fb", "follow_fb")}
         >
           在 Facebook 追蹤 →
         </a>
@@ -64,6 +66,7 @@ export default function AdCard({ large = false }: { large?: boolean }) {
         href={REGISTER_URL}
         target="_blank"
         rel="noopener"
+        onClick={() => gtm.adClick("event", "register")}
       >
         立即報名 →
       </a>
