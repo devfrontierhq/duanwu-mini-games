@@ -1,13 +1,13 @@
+import { isBefore } from "date-fns";
+import { toZonedTime } from "date-fns-tz";
+import { TZ } from "../config";
+
 export type AdType = "event" | "fb";
 
-export function getAdType(): AdType {
-  const now = new Date();
-  const tw = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Taipei" }));
-  const y = tw.getFullYear();
-  const m = tw.getMonth(); // 0-indexed
-  const d = tw.getDate();
+// Switch to fb after 2026-06-27 00:00:00 (Taiwan time).
+const SWITCH_DATE = new Date("2026-06-27T00:00:00+08:00");
 
-  if (y < 2026 || m < 5) return "event";
-  if (y > 2026 || m > 5) return "fb";
-  return d <= 26 ? "event" : "fb";
+export function getAdType(): AdType {
+  const now = toZonedTime(new Date(), TZ);
+  return isBefore(now, SWITCH_DATE) ? "event" : "fb";
 }

@@ -1,4 +1,7 @@
 // Set VITE_SHEETS_URL in .env.local to enable leaderboard
+
+export const TZ = "Asia/Taipei";
+
 export const SHEETS_URL: string =
   (import.meta.env.VITE_SHEETS_URL as string) ?? "";
 

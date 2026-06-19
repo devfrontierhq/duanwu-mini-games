@@ -1,7 +1,9 @@
 import { SHEETS_URL } from "../config";
 import type { ScoreEntry } from "../types";
 
-export async function fetchTopScores(limit = 10): Promise<ScoreEntry[]> {
+export type ScorePeriod = "all" | "month" | "today";
+
+export async function fetchTopScores(limit = 500): Promise<ScoreEntry[]> {
   if (!SHEETS_URL) return [];
   const res = await fetch(`${SHEETS_URL}?action=getTop&limit=${limit}`, {
     cache: "no-store",
